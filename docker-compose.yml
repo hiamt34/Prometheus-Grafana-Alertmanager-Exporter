@@ -1,0 +1,146 @@
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./configs/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml  # Mount file alert.rules vào container
+    networks:
+      - monitoring
+    depends_on:
+      - blackbox_exporter
+      - node_app
+      - mongodb_exporter
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - "./configs/alertmanager:/config"
+    command: --config.file=/config/alertmanager.yml --log.level=debug --cluster.advertise-address=0.0.0.0:9093
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: "admin"      # Tên người dùng admin
+      GF_SECURITY_ADMIN_PASSWORD: "admin"  # Mật khẩu cho admin
+    volumes:
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  node_exporter:
+    image: prom/node-exporter
+    container_name: node_exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter
+    container_name: blackbox_exporter
+    restart: always
+    volumes:
+      - ./configs/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml  # Mount file blackbox.yml vào container
+    ports:
+      - "9115:9115"
+    networks:
+      - monitoring
+    depends_on:
+      - node_app
+
+  node_app:
+    image: hiamt34/app-health-check
+    container_name: node_app
+    restart: always
+    ports:
+      - "8081:8081"
+    networks:
+      - monitoring
+  
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_DB: test
+    volumes:
+      - ./configs/mongo-entrypoint/:/docker-entrypoint-initdb.d/ #init db
+    networks:
+      - monitoring
+      
+  mongodb_exporter:
+    image: 'percona/mongodb_exporter:0.40.0'
+    container_name: mongodb_exporter
+    environment:
+      MONGODB_URI: mongodb://myUser:myPassword@mongodb:27017
+    command: ["--collect-all", "--compatible-mode", "--discovering-mode"]
+    ports:
+      - 9216:9216
+    networks:
+      - monitoring
+  
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+    networks:
+      - monitoring
+
+  #https://hub.docker.com/r/prom/mysqld-exporter/
+  #https://github.com/prometheus-community/helm-charts/issues/3534#issuecomment-2520904863
+  mysql_exporter:
+    image: prom/mysqld-exporter
+    container_name: mysql_exporter
+    command:
+     - "--mysqld.username=root:example"
+     - "--mysqld.address=mysql:3306"
+    environment:
+      # Format: "username:password@(host:port)/"
+      DATA_SOURCE_NAME: "root:example@(mysql:3306)/"
+    ports:
+      - "9104:9104"
+    networks:
+      - monitoring
+    depends_on:
+      - mysql
+  
+  #discord notify
+  discord-alerts:
+    image: benjojo/alertmanager-discord
+    container_name: discord-alerts
+    restart: unless-stopped
+    environment:
+      - DISCORD_WEBHOOK=https://discord.com/api/webhooks/1358103344157294863/P_LLnMt09YgX9yUHJMasNka2L2e9VV4UONcatHrv5y_YpagS9QqEkrz-qekYN-Vn-SBz
+    ports:
+      - 9094:9094
+    networks:
+      - monitoring
+networks:
+  monitoring:
+    driver: bridge

@@ -1,0 +1,21 @@
+groups:
+  - name: recording_rules
+    rules:
+      - record: probe:success_with_status
+        expr: probe_success{job="blackbox-exporter"} * on(instance) group_left(status_code) probe_http_status_code
+  - name: alert_rules
+    interval: 2s
+    rules:
+      - alert: http_non_2xx_response
+        expr: (1 - probe_success{job="blackbox-exporter"}) * on(instance) probe_http_status_code{job="blackbox-exporter"} > 0
+        for: 1s
+        labels:
+          severity: critical
+        annotations:
+          summary: "❌**[CRITICAL] HTTP Probe Failure**❌"
+          description: |
+            **Target:** 🔗{{ $labels.instance }}
+            **Received:** HTTP status code **{{ $value | printf "%.0f" }}**
+            **Action:** Please check the URL and verify that the service is healthy.
+
+

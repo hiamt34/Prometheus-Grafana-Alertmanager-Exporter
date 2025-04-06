@@ -1,0 +1,52 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # Cấu hình lý metric từ MongoDB Exporter
+  - job_name: 'mongodb-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['mongodb_exporter:9216']
+
+  # Cấu hình lý metric từ MySQL Exporter
+  - job_name: 'mysql-exporter'
+    static_configs:
+      - targets: ['mysql_exporter:9104']  # Địa chỉ MySQL Exporter (container name hoặc IP)
+      
+ # Cấu hình lấy metric từ Node Exporter
+  - job_name: 'node-exporter'
+    scrape_interval: 5s  # Tần suất lấy metric từ Node Exporter
+    static_configs:
+      - targets: ['node_exporter:9100']  # Địa chỉ Node Exporter (container name hoặc IP)
+
+  # Cấu hình lấy metric từ Blackbox Exporter   
+  - job_name: 'blackbox-exporter'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Kiểm tra mã HTTP 2xx (thành công)
+    static_configs:
+      - targets:
+        # - http://node_app:8081/status
+        - http://node_app:8081/health
+        # - http://node_app:8081/
+    relabel_configs:
+      - source_labels: [ __address__ ]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115  # Địa chỉ của Blackbox Exporter
+      - target_label: __metrics_path__
+        replacement: /probe
+      - source_labels: [probe_http_status_code]
+        target_label: status_code
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets: ['alertmanager:9093']
+
+
+rule_files:
+  - "/etc/prometheus/alert_rules.yml"

@@ -1,0 +1,13 @@
+modules:
+  http_2xx:
+    http:
+      fail_if_not_ssl: false          # Không yêu cầu SSL (sử dụng HTTP thay vì HTTPS nếu không có SSL)
+      ip_protocol_fallback: false     # Không sử dụng fallback sang IP v6 nếu IP v4 không thành công
+      method: GET                     # Sử dụng phương thức HTTP GET
+      no_follow_redirects: false      # Cho phép theo dõi các redirect (3xx)
+      preferred_ip_protocol: ip4      # Ưu tiên giao thức IP v4
+      valid_http_versions:
+        - HTTP/1.1
+        - HTTP/2.0                   # Cho phép HTTP/1.1 và HTTP/2.0
+    prober: http
+    timeout: 15s                       # Thời gian chờ là 15 giây cho mỗi yêu cầu HTTP
