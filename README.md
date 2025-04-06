@@ -13,6 +13,8 @@ Hệ thống giám sát này được thiết kế để giám sát dịch vụ 
 1. Cài đặt Docker trên máy tính của bạn.
 2. Chạy lệnh `git clone https://github.com/hiamt34/Prometheus-Grafana-Alertmanager-Exporter.git` để tải mã nguồn xuống.
 3. Chạy lệnh `docker-compose up -d` để khởi động hệ thống.
+4. Join Chanel Discord sau kể nhận mesages từ Prometheus khi có Req lỗi từ Blackbox Exporter vào server `https://discord.gg/DytH4tqU`
+5. Truy cập Grafana `http://localhost:3000/` username:: `admin` password: `admin`. Bấm bào dashboards sẽ có sãn các Dashboard đã đc config phù hợp
 
 **Các Thành Phần**
 
@@ -28,31 +30,35 @@ Hệ thống giám sát này được thiết kế để giám sát dịch vụ 
 
 **Cấu Hình**
 .
-├── configs                              # Thư mục chứa các file cấu hình
-│   ├── grafana                          # Thư mục chứa các file cấu hình Grafana
-│   │   ├── provisioning                
-│   │   │   ├── dashboards
-│   │   │   │   ├── mysql-exporter.json
-│   │   │   │   ├── node-exporter.json
-│   │   │   │   └── v3.json
-│   │   └── grafana.ini
-│   ├── prometheus                        # File cấu hình
-│   │   └── prometheus.yml
-│   └── blackbox
-│       └── blackbox.yml
+├── configs
+│    ├── alertmanager
+│    │   └── alertmanager.yml              # File cấu hình receivers nhận notify
+│    ├── blackbox
+│    │   └── blackbox.yml                  # File cấu hình blackbox để kiểm tra và giám sát các dịch vụ
+│    ├── grafana
+│    │   └── provisioning
+│    │       ├── dashboards
+│    │       │   ├── dashboard.yml         # File cấu hình các dashboards
+│    │       │   ├── mongo-exporter.json   # Dashboard Mongo Exporter
+│    │       │   ├── mysql-exporter.json   # Dashboard MySQL Exporter
+│    │       │   ├── node-exporter.json    # Dashboard Node Exporter
+│    │       │   └── v3.json               # Dashboard Backbox Exporter
+│    │       └── datasources
+│    │           └── datasource.yml        # File cấu hình datasource (prometheus)
+│    ├── mongo-entrypoint
+│    │     └── init.js                     # File init MongoDB để Mongo Exporter có thế thu thập metrics
+│    └── prometheus
+│        ├── alert_rules.yml               # File cấu hình alert rule
+│        └── prometheus.yml                # File cấu hình Job để thu thập metrics từ các Exporter định kỳ
 ├── docker-compose.yml
 └── README.md
 
-**Kết Quả Mong Đợi**
+**Kết Quả**
 
 Khi chạy hệ thống, bạn sẽ thấy các dashboard giám sát trên giao diện Grafana, bao gồm:
 
 * Giám sát tài nguyên hệ thống (CPU, RAM, Disk).
-* Trạng thái API (success rate, response time).
-* Cảnh báo trực quan khi API gặp lỗi.
-
-**Lưu Ý**
-
-* Hệ thống này được thiết kế để chạy trên môi trường Docker.
-* Bạn cần cài đặt Docker và Docker Compose trên máy tính của bạn để chạy hệ thống.
-* Bạn cần cấu hình lại file `config.yml` để gửi cảnh báo qua Slack hoặc Telegram.
+* Giám sát trạng thái API taget.
+* Giám sát tài nguyên MySQL
+* Giám sát tài nguyên MongoDB
+* Chanel Discord để nhận message cảnh báo khi có lỗi
