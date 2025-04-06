@@ -58,8 +58,11 @@ Hệ thống giám sát này được thiết kế để giám sát dịch vụ 
 
 Khi chạy hệ thống, bạn sẽ thấy các dashboard giám sát trên giao diện Grafana, bao gồm:
 
-* Giám sát tài nguyên hệ thống (CPU, RAM, Disk).
-* Giám sát trạng thái API taget.
-* Giám sát tài nguyên MySQL
-* Giám sát tài nguyên MongoDB
+* Giám sát tài nguyên hệ thống (CPU, RAM, Disk)... `#Node Exporter Full`
+* Giám sát trạng thái API taget, uptime, downtime... `#Prometheus Blackbox Exporter2`
+* Giám sát tài nguyên MySQL `#MySQL Exporter Dashboard`
+* Giám sát tài nguyên MongoDB `#Opstree/Mongodb Dashboard`
 * Chanel Discord để nhận message cảnh báo khi có lỗi
+
+**Cảnh báo nhận được khi Backbox phát hiện req health check gặp lỗi**
+![Alt text](image.png)
