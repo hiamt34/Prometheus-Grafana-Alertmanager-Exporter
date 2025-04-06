@@ -29,6 +29,7 @@ Hệ thống giám sát này được thiết kế để giám sát dịch vụ 
 * **Discord**: Nơi nhận cảnh báo của Prometheus khi API gặp lỗi, Node bị down.... (có thể thay bằng Tele hoặc Slack)
 
 **Cấu Hình**
+```
 .
 ├── configs
 │    ├── alertmanager
@@ -52,7 +53,7 @@ Hệ thống giám sát này được thiết kế để giám sát dịch vụ 
 │        └── prometheus.yml                # File cấu hình Job để thu thập metrics từ các Exporter định kỳ
 ├── docker-compose.yml
 └── README.md
-
+```
 **Kết Quả**
 
 Khi chạy hệ thống, bạn sẽ thấy các dashboard giám sát trên giao diện Grafana, bao gồm:
